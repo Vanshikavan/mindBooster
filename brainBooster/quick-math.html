@@ -1,163 +1,212 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>BrainBooster - Reflex Tap Game</title>
-  <link rel="stylesheet" href="./style.css" />
+  <meta charset="UTF-8">
+  <title>Quick Math Game</title>
   <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
     body {
+      font-family: 'Segoe UI', sans-serif;
       background-color: #121212;
       color: #fff;
-      font-family: sans-serif;
       text-align: center;
       padding: 2rem;
     }
+
     h1 {
-      font-size: 2.5rem;
-      margin-bottom: 1rem;
+      font-size: 3rem;
+      margin-bottom: 1.5rem;
+      color: #4caf50;
     }
-    #gameArea {
-      position: relative;
-      width: 100%;
-      height: 400px;
-      border: 2px dashed #555;
-      margin: 2rem auto;
+
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 2rem;
       background-color: #1e1e1e;
-      overflow: hidden;
+      border-radius: 15px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.5);
     }
-    .circle {
-      position: absolute;
-      width: 80px;
-      height: 80px;
-      border-radius: 50%;
-      background-color: #f44336;
+
+    .rules-box {
+      background-color: #2c2c2c;
+      padding: 1rem;
+      border-radius: 12px;
+      margin-bottom: 1.5rem;
+    }
+
+    .rules-box h2 {
+      margin-bottom: 0.8rem;
+      color: #ffca28;
+    }
+
+    .rules-box p {
+      margin: 0.4rem 0;
+    }
+
+    .play-btn {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      font-size: 1rem;
+      border: none;
+      border-radius: 8px;
+      background-color: #2196f3;
+      color: white;
       cursor: pointer;
     }
-    #startBtn, #restartBtn {
-      padding: 0.7rem 1.5rem;
-      font-size: 1rem;
+
+    .score, .timer {
+      font-size: 1.3rem;
+      margin: 0.7rem 0;
+    }
+
+    .question {
+      font-size: 2rem;
+      margin: 1.5rem 0;
+    }
+
+    .options {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .option-btn {
+      background-color: #03a9f4;
+      padding: 1rem 2rem;
+      border: none;
+      border-radius: 10px;
+      font-size: 1.5rem;
+      color: white;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    .option-btn:hover {
+      background-color: #0288d1;
+    }
+
+    .start-btn, .restart-btn {
+      padding: 0.8rem 1.6rem;
+      font-size: 1.2rem;
       border: none;
       border-radius: 10px;
       background-color: #4caf50;
       color: white;
       cursor: pointer;
-    }
-    #reactionTime {
-      font-weight: bold;
-      color: #4caf50;
-    }
-    #timer {
-      font-size: 1.2rem;
-      color: #f44336;
-    }
-    #highScore {
-      font-size: 1.2rem;
-      color: #ffeb3b;
-      margin-top: 20px;
+      margin: 1rem 0.5rem;
     }
   </style>
 </head>
 <body>
-  <h1>⚡ Reflex Tap</h1>
-  <p>Click the circle as quickly as you can when it appears!</p>
-  <div id="gameArea"></div>
-  <p>⏱️ Your Reaction Time: <span id="reactionTime">--</span> seconds</p>
-  <p>⏳ Time Left: <span id="timer">--</span> seconds</p>
-  <button id="startBtn">Start Game</button>
-  <button id="restartBtn" style="display: none;">Restart Game</button>
-  <p id="highScore">High Score: <span id="highScoreValue">--</span> seconds</p>
+  <h1>Quick Math ➕</h1>
+  <div class="container">
+    <div class="rules-box" id="rulesBox">
+      <h2>🧠 Game Rules</h2>
+      <p>✅ Correct Answer: +1 Score, +1 sec</p>
+      <p>❌ Wrong Answer: -2 sec</p>
+      <p>⏳ Timer: Starts from 10 seconds</p>
+      <button class="play-btn" id="playBtn">Let's Play!</button>
+    </div>
+
+    <div class="score">Score: <span id="score">0</span></div>
+    <div class="timer">⏱️ Time: <span id="time">0</span>s</div>
+    <div class="question" id="question">Press Start to Begin!</div>
+    <div class="options" id="options"></div>
+
+    <button class="start-btn" id="startBtn">Start</button>
+    <button class="restart-btn" id="restartBtn" style="display:none;">Restart</button>
+  </div>
 
   <script>
-    const gameArea = document.getElementById('gameArea');
-    const reactionTimeEl = document.getElementById('reactionTime');
-    const startBtn = document.getElementById('startBtn');
-    const restartBtn = document.getElementById('restartBtn');
-    const timerEl = document.getElementById('timer');
-    const highScoreEl = document.getElementById('highScoreValue');
-    let startTime, endTime;
-    let isGameStarted = false;
-    let gameTime = 20;
-    let countdown;
+    const questionEl=document.getElementById("question");
+    const optionsEl=document.getElementById("options");
+    const scoreEl = document.getElementById("score");
+    const timeEl = document.getElementById("time");
+    const startBtn = document.getElementById("startBtn");
+    const restartBtn = document.getElementById("restartBtn");
+    const rulesBox = document.getElementById("rulesBox");
+    const playBtn = document.getElementById("playBtn");
 
-    let highScore = localStorage.getItem('highScore') || null;
-    if (highScore) {
-      highScoreEl.textContent = highScore + ' seconds';
-    }
+    let score = 0;
+    let time = 0;
+    let correctAnswer = 0;
+    let timer;
 
-    function getRandomPosition() {
-      const areaWidth = gameArea.clientWidth - 80;
-      const areaHeight = gameArea.clientHeight - 80;
-      const x = Math.random() * areaWidth;
-      const y = Math.random() * areaHeight;
-      return { x, y };
-    }
-
-    function showCircle() {
-      const position = getRandomPosition();
-      const circle = document.createElement('div');
-      circle.classList.add('circle');
-      circle.style.left = `${position.x}px`;
-      circle.style.top = `${position.y}px`;
-      gameArea.appendChild(circle);
-      circle.addEventListener('click', () => {
-        endTime = new Date().getTime();
-        const reactionTime = (endTime - startTime) / 1000;
-        reactionTimeEl.textContent = reactionTime.toFixed(2);
-        gameArea.innerHTML = '';
-        if (gameTime > 0) {
-          showCircle();
-        } else {
-          endGame(reactionTime);
-        }
+    function generateQuestion(){
+      const num1=Math.floor(Math.random()*10);
+      const num2=Math.floor(Math.random()*10);
+      correctAnswer=num1+num2;
+      questionEl.textContent=`${num1} + ${num2} = ?`;
+      const options=new Set();
+      options.add(correctAnswer);
+      while(options.size<3){
+        options.add(correctAnswer+Math.floor(Math.random()*10-5));
+      }
+      optionsEl.innerHTML="";
+      [...options].sort(()=>0.5-Math.random()).forEach((opt)=>{
+        const btn=document.createElement("button");
+        btn.textContent=opt;
+        btn.className="option-btn";
+        btn.onclick=()=> checkAnswer(opt);
+        optionsEl.appendChild(btn);
       });
     }
 
-    function startGame() {
-      startBtn.style.display = 'none';
-      restartBtn.style.display = 'none';
-      reactionTimeEl.textContent = '--';
-      timerEl.textContent = gameTime;
-      isGameStarted = true;
-      gameTime = 20;
-      countdown = setInterval(updateTimer, 1000);
-      setTimeout(() => {
-        if (isGameStarted) {
-          startTime = new Date().getTime();
-          showCircle();
+    function checkAnswer(selected){
+      if(selected===correctAnswer){
+        score++;
+        time++;
+      }
+      else{
+        time -=2;
+      }
+      scoreEl.textContent=score;
+      generateQuestion();
+    }
+
+    function startGame(){
+      score=0;
+      time=10;
+      scoreEl.textContent=score;
+      timeEl.textContent=time;
+      generateQuestion();
+
+      startBtn.style.display="none";
+      restartBtn.style.display="inline-block";
+
+      clearInterval(timer);
+      timer=setInterval(()=>{
+        time--;
+        timeEl.textContent=time;
+        if(time<=0){
+          clearInterval(timer);
+          questionEl.textContent = "⏳ Time's Up!";
+          optionsEl.innerHTML = "";
+          saveHighScore();
         }
-      }, Math.random() * 2000 + 1000);
+      },1000)
     }
 
-    function updateTimer() {
-      if (gameTime > 0) {
-        gameTime--;
-        timerEl.textContent = gameTime;
+    function saveHighScore() {
+      const high = localStorage.getItem("mathHighScore") || 0;
+      if (score > high) {
+        localStorage.setItem("mathHighScore", score);
+        alert("🎉 New High Score: " + score);
       } else {
-        endGame();
+        alert("Your Score: " + score);
       }
     }
 
-    function endGame(reactionTime = null) {
-      clearInterval(countdown);
-      gameArea.innerHTML = '';
-      timerEl.textContent = 'Game Over';
-      restartBtn.style.display = 'block';
-      if (reactionTime !== null && (highScore === null || reactionTime < highScore)) {
-        highScore = reactionTime.toFixed(2);
-        localStorage.setItem('highScore', highScore);
-        highScoreEl.textContent = highScore + ' seconds';
-      }
-    }
-
-    function restartGame() {
-      gameTime = 20;
-      reactionTimeEl.textContent = '--';
-      startGame();
-    }
-
-    startBtn.addEventListener('click', startGame);
-    restartBtn.addEventListener('click', restartGame);
+    startBtn.onclick = startGame;
+    restartBtn.onclick = startGame;
   </script>
 </body>
 </html>
