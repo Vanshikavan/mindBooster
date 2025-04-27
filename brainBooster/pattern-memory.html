@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pattern Memory Game</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background-color: #121212;
+      color: white;
+    }
+
+    .container {
+      margin-top: 50px;
+    }
+
+    button {
+      padding: 15px 25px;
+      font-size: 20px;
+      margin: 10px;
+      background-color: #4caf50;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+
+    button:active {
+      background-color: #388e3c;
+    }
+
+    .memory-btn {
+      width: 100px;
+      height: 100px;
+      font-size: 30px;
+    }
+
+    .pattern-display {
+      margin-bottom: 20px;
+      font-size: 30px;
+      font-weight: bold;
+      color: #f44336;
+    }
+
+    .button-container {
+      display: flex;
+      justify-content: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔁 Pattern Memory</h1>
+    <p>Memorize the pattern and click the buttons in the same order!</p>
+
+    <div id="patternDisplayArea" class="pattern-display"></div>
+
+    <div id="buttons" class="button-container">
+      <button class="memory-btn">1</button>
+      <button class="memory-btn">2</button>
+      <button class="memory-btn">3</button>
+      <button class="memory-btn">4</button>
+    </div>
+
+    <button id="startBtn">Start Game</button>
+    <p>Your Score: <span id="score">0</span></p>
+  </div>
+
+  <script>
+    let pattern = [];
+    let userPattern = [];
+    let score = 0;
+    let level = 1;
+    let gameStarted = false;
+
+    const startBtn = document.getElementById('startBtn');
+    const scoreEl = document.getElementById('score');
+    const buttons = document.querySelectorAll('.memory-btn');
+    const patternDisplayArea = document.getElementById('patternDisplayArea');
+
+    startBtn.addEventListener('click', startGame);
+
+    buttons.forEach(button => {
+      button.addEventListener('click', (e) => {
+        if (!gameStarted) return; // If game hasn't started, don't accept clicks
+        userPattern.push(parseInt(e.target.textContent)); // Add the clicked button number
+        checkUserPattern();
+      });
+    });
+
+    function startGame() {
+      score = 0;
+      level = 1;
+      pattern = [];
+      userPattern = [];
+      gameStarted = true;
+      scoreEl.textContent = score;
+      startBtn.textContent = 'Restart Game';
+      generatePattern();
+    }
+
+    function generatePattern() {
+      userPattern = []; // Reset user pattern for new round
+      pattern.push(Math.floor(Math.random() * 4) + 1); // Add a new random number (1-4) to the pattern
+      showPattern();
+    }
+
+    function showPattern() {
+      patternDisplayArea.textContent = `Memorizing... Level: ${level}`;
+      let index = 0;
+      const interval = setInterval(() => {
+        const currentButton = document.querySelector(`.memory-btn:nth-child(${pattern[index]})`);
+        currentButton.style.backgroundColor = 'orange';
+        setTimeout(() => {
+          currentButton.style.backgroundColor = '#4caf50';
+        }, 500);
+        index++;
+
+        if (index === pattern.length) {
+          clearInterval(interval);
+          patternDisplayArea.textContent = 'Your turn!';
+        }
+      }, 1000);
+    }
+
+    function checkUserPattern() {
+      const currentIndex = userPattern.length - 1;
+      if (userPattern[currentIndex] !== pattern[currentIndex]) {
+        alert('Game Over! You lost.');
+        gameStarted = false;
+        return;
+      }
+      if (userPattern.length === pattern.length) {
+        score++;
+        scoreEl.textContent = score;
+        level++;
+        setTimeout(generatePattern, 1000);
+      }
+    }
+  </script>
+</body>
+</html>
