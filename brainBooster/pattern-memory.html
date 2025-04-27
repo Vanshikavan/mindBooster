@@ -84,8 +84,8 @@
 
     buttons.forEach(button => {
       button.addEventListener('click', (e) => {
-        if (!gameStarted) return; // If game hasn't started, don't accept clicks
-        userPattern.push(parseInt(e.target.textContent)); // Add the clicked button number
+        if (!gameStarted) return;
+        userPattern.push(parseInt(e.target.textContent)); 
         checkUserPattern();
       });
     });
@@ -102,8 +102,8 @@
     }
 
     function generatePattern() {
-      userPattern = []; // Reset user pattern for new round
-      pattern.push(Math.floor(Math.random() * 4) + 1); // Add a new random number (1-4) to the pattern
+      userPattern = []; 
+      pattern.push(Math.floor(Math.random() * 4) + 1); 
       showPattern();
     }
 
